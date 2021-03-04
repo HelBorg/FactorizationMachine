@@ -1,7 +1,9 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import OneHotEncoder
 import scipy.sparse
+from scipy import sparse
+from sklearn.model_selection import KFold
+from sklearn.preprocessing import OneHotEncoder
 
 
 class TransformData:
@@ -11,8 +13,8 @@ class TransformData:
     def __init__(self, data_path):
         self.df = pd.read_csv(data_path, header=None,
                               names=self.col_names, usecols=[0, 1, 2])
-        self.X = None
         self.y = None
+        self.X = None
 
     def transform(self):
         self._add_movie_id()
@@ -22,11 +24,19 @@ class TransformData:
         self._encode_data()
 
     def save_data(self, data_path):
-        self.df.to_csv(data_path, header=True)
+        self.df.to_csv(data_path, header=True, index=False)
 
     def load_data(self, data_path):
-        self.df = pd.read_csv(data_path, header=True)
+        self.df = pd.read_csv(data_path, header=0)
         self._encode_data()
+
+    def get_fold(self, n_folds=5):
+        kf = KFold(n_splits=n_folds, shuffle=True)
+        for train_index, test_index in kf.split(self.df):
+            X_train, X_test = self.X[train_index], self.X[test_index]
+            y_train, y_test = self.y[train_index], self.y[test_index]
+
+            yield X_train, X_test, y_train, y_test
 
     def _add_movie_id(self):
         ###
@@ -74,5 +84,5 @@ class TransformData:
         movie_mat = encoder.fit_transform(np.asarray(self.df["Movie_ID"]).reshape(-1, 1))
         month_mat = encoder.fit_transform(np.asarray(self.df["Month"]).reshape(-1, 1))
 
-        self.X = scipy.sparse.hstack([user_mat, movie_mat, month_mat])
-        self.y = np.asarray(self.df.Rating).reshape(-1, 1)
+        self.X = scipy.sparse.hstack([user_mat, movie_mat, month_mat]).tocsr()
+        self.y = np.asarray(self.df['Rating']).reshape(-1, 1)
