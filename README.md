@@ -1,5 +1,5 @@
 
-# Gradient Descent
+# Factorization Machine
 
 Dataset: https://www.kaggle.com/netflix-inc/netflix-prize-data?select=combined_data_1.txt
 
