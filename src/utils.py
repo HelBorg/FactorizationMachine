@@ -1,7 +1,6 @@
 import numpy as np
 import pandas as pd
 import scipy.sparse
-from scipy import sparse
 from sklearn.model_selection import KFold
 from sklearn.preprocessing import OneHotEncoder
 
